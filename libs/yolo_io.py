@@ -33,15 +33,15 @@ class YOLOWriter:
         ymin = box['ymin']
         ymax = box['ymax']
 
-        xcen = float((xmin + xmax)) / 2 / self.imgSize[1]
-        ycen = float((ymin + ymax)) / 2 / self.imgSize[0]
+        xmin = xmin / self.imgSize[1]
+        ymin = ymin / self.imgSize[0]
+        xmax = xmax / self.imgSize[1]
+        ymax = ymax / self.imgSize[0]        
 
-        w = float((xmax - xmin)) / self.imgSize[1]
-        h = float((ymax - ymin)) / self.imgSize[0]
 
         classIndex = classList.index(box['name'])
 
-        return classIndex, xcen, ycen, w, h
+        return classIndex, xmin, ymin, xmax, ymax
 
     def save(self, classList=[], targetFile=None):
 
@@ -61,9 +61,9 @@ class YOLOWriter:
 
 
         for box in self.boxlist:
-            classIndex, xcen, ycen, w, h = self.BndBox2YoloLine(box, classList)
-            print (classIndex, xcen, ycen, w, h)
-            out_file.write("%d %.6f %.6f %.6f %.6f\n" % (classIndex, xcen, ycen, w, h))
+            classIndex, xmin, ymin, xmax, ymax = self.BndBox2YoloLine(box, classList)
+            print (classIndex, xmin, ymin, xmax, ymax)
+            out_file.write("%d %.6f %.6f %.6f %.6f\n" % (classIndex, xmin, ymin, xmax, ymax))
 
         print (classList)
         print (out_class_file)
@@ -115,13 +115,8 @@ class YoloReader:
         points = [(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)]
         self.shapes.append((label, points, None, None, difficult))
 
-    def yoloLine2Shape(self, classIndex, xcen, ycen, w, h):
+    def yoloLine2Shape(self, classIndex, xmin, ymin, xmax, ymax):
         label = self.classes[int(classIndex)]
-
-        xmin = max(float(xcen) - float(w) / 2, 0)
-        xmax = min(float(xcen) + float(w) / 2, 1)
-        ymin = max(float(ycen) - float(h) / 2, 0)
-        ymax = min(float(ycen) + float(h) / 2, 1)
 
         xmin = int(self.imgSize[1] * xmin)
         xmax = int(self.imgSize[1] * xmax)
@@ -133,8 +128,9 @@ class YoloReader:
     def parseYoloFormat(self):
         bndBoxFile = open(self.filepath, 'r')
         for bndBox in bndBoxFile:
-            classIndex, xcen, ycen, w, h = bndBox.split(' ')
-            label, xmin, ymin, xmax, ymax = self.yoloLine2Shape(classIndex, xcen, ycen, w, h)
+            classIndex, xmin, ymin, xmax, ymax = bndBox.split(' ')
+            label, xmin, ymin, xmax, ymax = self.yoloLine2Shape(classIndex, xmin, ymin, xmax, ymax)
 
             # Caveat: difficult flag is discarded when saved as yolo format.
             self.addShape(label, xmin, ymin, xmax, ymax, False)
+```
