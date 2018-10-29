@@ -133,4 +133,3 @@ class YoloReader:
 
             # Caveat: difficult flag is discarded when saved as yolo format.
             self.addShape(label, xmin, ymin, xmax, ymax, False)
-```

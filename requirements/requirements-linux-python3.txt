@@ -1,2 +1,4 @@
 pyqt5==5.10.1
 lxml==4.2.4
+resources==0.0.1
+staty==0.5.0
